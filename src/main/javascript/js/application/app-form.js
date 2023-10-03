@@ -2,7 +2,6 @@ import $ from "jquery";
 import { parseISO } from "date-fns";
 import parseQueryString from "../parse-query-string";
 import { createDatepicker } from "../../components/datepicker";
-import "../../components/timepicker";
 import sendGetDaysRequest from "../send-get-days-request";
 import sendGetDepartmentVacationsRequest from "../send-get-department-vacations-request";
 
@@ -65,20 +64,6 @@ $(document).ready(async function () {
     sendGetDaysRequest(apiPrefix, startDate, endDate, dayLength, personId, ".days");
     sendGetDepartmentVacationsRequest(apiPrefix, startDate, endDate, personId, "#departmentVacations");
   }
-
-  // Timepicker for optional startTime and endTime
-  $("#startTime").timepicker({
-    step: 15,
-    timeFormat: "H:i",
-    forceRoundTime: true,
-    scrollDefault: "now",
-  });
-  $("#endTime").timepicker({
-    step: 15,
-    timeFormat: "H:i",
-    forceRoundTime: true,
-    scrollDefault: "now",
-  });
 
   let applicationSubmitPressed = false;
   document.querySelector("#apply-application").addEventListener("click", (event) => {

@@ -41,8 +41,11 @@ import java.math.BigDecimal;
 import java.sql.Time;
 import java.time.Clock;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.time.Year;
 import java.time.ZonedDateTime;
+import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 import java.util.Optional;
@@ -435,6 +438,19 @@ class ApplicationForLeaveFormViewController implements HasLaunchpad {
 
         final List<VacationTypeDto> vacationTypeColors = vacationTypeViewModelService.getVacationTypeColors();
         model.addAttribute("vacationTypeColors", vacationTypeColors);
+        model.addAttribute("timeValues", timeValues());
+    }
+
+    private List<String> timeValues() {
+        LocalDateTime time = LocalDateTime.now().withHour(0).withMinute(0);
+        int dayOfYear = time.getDayOfYear();
+        List<String> values =  new ArrayList<>();
+        final DateTimeFormatter formatter = DateTimeFormatter.ofPattern("HH:mm");
+        while (dayOfYear == time.getDayOfYear()) {
+            values.add(formatter.format(time));
+            time = time.plusMinutes(15);
+        }
+        return values;
     }
 
     private static Predicate<Person> personEquals(Person person) {
