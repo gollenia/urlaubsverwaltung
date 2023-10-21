@@ -10,6 +10,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Optional;
 
@@ -153,12 +154,17 @@ public class VacationTypeServiceImpl implements VacationTypeService {
     }
 
     private static CustomVacationType updateCustomVacationType(CustomVacationType customVacationType, VacationTypeUpdate vacationTypeUpdate) {
+
+        final Map<Locale, String> labelByLocale = vacationTypeUpdate.getLabelByLocale()
+            .orElseThrow(() -> new IllegalStateException("expected locales to be defined. cannot update %s".formatted(customVacationType)));
+
         return CustomVacationType.builder(customVacationType)
             .active(vacationTypeUpdate.isActive())
             .requiresApprovalToApply(vacationTypeUpdate.isRequiresApprovalToApply())
             .requiresApprovalToCancel(vacationTypeUpdate.isRequiresApprovalToCancel())
             .color(vacationTypeUpdate.getColor())
             .visibleToEveryone(vacationTypeUpdate.isVisibleToEveryone())
+            .labelByLocale(labelByLocale)
             .build();
     }
 
@@ -178,7 +184,6 @@ public class VacationTypeServiceImpl implements VacationTypeService {
     }
 
     private static CustomVacationType convertCustomVacationType(VacationTypeEntity customVacationTypeEntity) {
-        // TODO implement label for CustomVacationType
         return CustomVacationType.builder()
             .id(customVacationTypeEntity.getId())
             .active(customVacationTypeEntity.isActive())
@@ -187,6 +192,7 @@ public class VacationTypeServiceImpl implements VacationTypeService {
             .requiresApprovalToCancel(customVacationTypeEntity.isRequiresApprovalToCancel())
             .color(customVacationTypeEntity.getColor())
             .visibleToEveryone(customVacationTypeEntity.isVisibleToEveryone())
+            .labelByLocale(customVacationTypeEntity.getLabelByLocale())
             .build();
     }
 
@@ -212,9 +218,9 @@ public class VacationTypeServiceImpl implements VacationTypeService {
     }
 
     private static VacationTypeEntity convertCustomVacationType(CustomVacationType customVacationType) {
-        // TODO update labels
         final VacationTypeEntity vacationTypeEntity = toEntityBase(customVacationType);
         vacationTypeEntity.setCustom(true);
+        vacationTypeEntity.setLabelByLocale(customVacationType.getLabelByLocale());
         return vacationTypeEntity;
     }
 
