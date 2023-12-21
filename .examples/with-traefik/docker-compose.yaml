@@ -1,0 +1,77 @@
+version: '3.9'
+
+networks:
+  proxy:
+    external: true
+  urlaub:
+    
+services:
+
+  urlaubsverwaltung:
+    image: urlaubsverwaltung/urlaubsverwaltung:5.0.0-RC1
+    container_name: urlaubsverwaltung
+    networks: 
+      - proxy
+      - urlaub
+    environment:
+      SERVER_PORT: 8080
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/urlaubsverwaltung
+      SPRING_DATASOURCE_USERNAME: [DB_USER]
+      SPRING_DATASOURCE_PASSWORD: [DB_SECRET]
+      # MAIL
+      UV_MAIL_FROM: urlaub@kids-team.at
+      UV_MAIL_FROMDISPLAYNAME: Urlaubsverwaltung
+      UV_MAIL_REPLYTO: urlaub@ekids-team.at
+      UV_MAIL_REPLYTODISPLAYNAME: Urlaubsverwaltung
+      UV_MAIL_APPLICATIONURL: [your_domain]
+      UV_MAIL_ADMINISTRATOR: urlaubsverwaltung@example.org
+      UV_MAIL_FROM: urlaubsverwaltung@example.org
+      UV_MAIL_FROMDISPLAYNAME: urlaubsverwaltung
+      UV_MAIL_REPLYTO: urlaubsverwaltung@example.org
+      UV_MAIL_REPLYTODISPLAYNAME: urlaubsverwaltung
+      UV_MAIL_APPLICATIONURL: http://localhost:8080
+      SPRING_MAIL_HOST: localhost
+      SPRING_MAIL_PORT: 1025
+      # CALENDAR
+      UV_CALENDAR_ORGANIZER: organizer@example.org
+      SPRING_SECURITY_OAUTH2_CLIENT_REGISTRATION_DEFAULT_CLIENT-ID: urlaubsverwaltung
+      SPRING_SECURITY_OAUTH2_CLIENT_REGISTRATION_DEFAULT_CLIENT-SECRET: [KEYCLOAK_SECRET]
+      SPRING_SECURITY_OAUTH2_CLIENT_REGISTRATION_DEFAULT_CLIENT-NAME: urlaubsverwaltung
+      SPRING_SECURITY_OAUTH2_CLIENT_REGISTRATION_DEFAULT_PROVIDER: default
+      SPRING_SECURITY_OAUTH2_CLIENT_REGISTRATION_DEFAULT_SCOPE: openid,profile,email,roles
+      SPRING_SECURITY_OAUTH2_CLIENT_REGISTRATION_DEFAULT_AUTHORIZATION-GRANT-TYPE: authorization_code
+      SPRING_SECURITY_OAUTH2_CLIENT_REGISTRATION_DEFAULT_REDIRECT-URI: [key_cloak_domain]/login/oauth2/code/{registrationId}
+      SPRING_SECURITY_OAUTH2_CLIENT_PROVIDER_DEFAULT_ISSUER-URI: [key_cloak_domain]/realms/urlaubsverwaltung
+      SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_ISSUER-URI: [key_cloak_domain]/realms/urlaubsverwaltung
+    depends_on:
+      postgres:
+        condition: service_healthy
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.urlaubsverwaltung.entrypoints=websecure"
+      - "traefik.http.routers.urlaubsverwaltung.rule=Host(`[your_domain]`)"
+      - "traefik.http.routers.urlaubsverwaltung.tls=true"
+      - "traefik.http.routers.urlaubsverwaltung.tls.certresolver=production"
+      - "traefik.http.routers.urlaubsverwaltung.service=urlaubsverwaltung"
+      - "traefik.http.services.urlaubsverwaltung.loadbalancer.server.port=8080"
+      - "traefik.docker.network=proxy"
+
+  postgres:
+    image: postgres:15.3
+    container_name: urlaubsverwaltung_db
+    networks: 
+      - urlaub
+    environment:
+      POSTGRES_DB: urlaubsverwaltung
+      POSTGRES_USER: [DB_USER]
+      POSTGRES_PASSWORD: [DB_SECRET]
+    volumes:
+      - /opt/urlaub/db:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -d $${POSTGRES_DB} -U $${POSTGRES_USER}"]
+      interval: 3s
+      timeout: 1s
+      retries: 5
+
